@@ -9,17 +9,13 @@ description:
   limits per user.
 instructions: >-
   Open the app domain and register: the first account becomes the admin and is
-  taken to the setup wizard to connect storage. With the bundled storage
-  enabled, choose "Self-hosted S3" and use endpoint
-  http://<project>_<service>-storage:9000 (for example
-  http://yourdrive_yourdrive-storage:9000), the storage service's domain as the
-  public URL, bucket "yourdrive", access key "yourdrive", the
-  AWS_SECRET_ACCESS_KEY from the storage service's environment as the secret
-  key, region us-east-1, and path-style URLs on. To use AWS S3, Cloudflare R2,
-  Wasabi or Azure instead, turn off the bundled storage and enter your own
-  bucket in the wizard. Uploads are limited to 500 MB per file. To update, back
-  up the database, then set the same new version tag on both the frontend and
-  backend images and redeploy; database migrations run automatically on start.
+  taken to the setup wizard to connect storage. With the bundled storage on,
+  choose "Bundled storage": every field is filled in, so just test and save. To
+  use AWS S3, Cloudflare R2, Wasabi or Azure Blob instead, turn off the bundled
+  storage and enter your own bucket in the wizard. Uploads are limited to 500 MB
+  per file. To update, back up the database, then set the same new version tag
+  on both the frontend and backend images and redeploy; database migrations run
+  automatically on start.
 changeLog:
   - date: 2026-10-07
     description: First release
@@ -45,11 +41,11 @@ schema:
     frontendServiceImage:
       type: string
       title: Frontend Image
-      default: dockeriddonuts/yourdrive-frontend:0.3.2
+      default: dockeriddonuts/yourdrive-frontend:0.3.3
     backendServiceImage:
       type: string
       title: Backend Image
-      default: dockeriddonuts/yourdrive-backend:0.3.2
+      default: dockeriddonuts/yourdrive-backend:0.3.3
     bundledStorage:
       type: boolean
       title: Bundled S3 Storage

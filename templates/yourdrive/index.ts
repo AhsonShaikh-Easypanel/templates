@@ -11,6 +11,7 @@ export function generate(input: Input): Output {
   const name = input.appServiceName;
   const databasePassword = randomPassword();
   const appUrl = `https://$(PROJECT_NAME)-${name}.$(EASYPANEL_HOST)`;
+  const storageSecret = randomString(40);
 
   services.push({
     type: "app",
@@ -37,6 +38,15 @@ export function generate(input: Input): Output {
         // Easypanel's proxy + the frontend's nginx
         `TRUST_PROXY_HOPS=2`,
         `TRASH_RETENTION_DAYS=30`,
+        // The setup wizard offers the bundled storage with these filled in
+        ...(input.bundledStorage
+          ? [
+              `BUNDLED_S3_ENDPOINT=http://$(PROJECT_NAME)_${name}-storage:9000`,
+              `BUNDLED_S3_PUBLIC_URL=https://$(PROJECT_NAME)-${name}-storage.$(EASYPANEL_HOST)`,
+              `BUNDLED_S3_ACCESS_KEY=yourdrive`,
+              `BUNDLED_S3_SECRET_KEY=${storageSecret}`,
+            ]
+          : []),
       ].join("\n"),
     },
   });
@@ -58,7 +68,7 @@ export function generate(input: Input): Output {
         source: { type: "image", image: "chrislusf/seaweedfs:4.48" },
         env: [
           `AWS_ACCESS_KEY_ID=yourdrive`,
-          `AWS_SECRET_ACCESS_KEY=${randomString(40)}`,
+          `AWS_SECRET_ACCESS_KEY=${storageSecret}`,
         ].join("\n"),
         deploy: {
           command:
