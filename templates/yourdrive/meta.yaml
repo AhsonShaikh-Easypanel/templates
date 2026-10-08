@@ -21,9 +21,9 @@ changeLog:
     description: First release
 links:
   - label: Website
-    url: https://yourdrive.app
+    url: https://yourdriveapp.com
   - label: Documentation
-    url: https://yourdrive.app/docs
+    url: https://yourdriveapp.com/docs
 contributors:
   - name: Ahson Shaikh
     url: https://github.com/Ahson-Shaikh
