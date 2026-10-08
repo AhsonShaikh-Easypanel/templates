@@ -4,9 +4,9 @@ description:
   own object storage. Upload, organize into folders, preview, search, share and
   restore files from Trash, with a Media timeline for every photo and video.
   Files stay in your own bucket on AWS S3, Azure Blob, Cloudflare R2, Wasabi or
-  any S3-compatible server. Free for up to 3 users; a Team license adds
-  unlimited users, shared link passwords and expiry, upload requests and storage
-  limits per user.
+  any S3-compatible server. Free for up to 3 users; a Team license covers up to
+  25 users and adds shared link passwords and expiry, upload requests and
+  storage limits per user.
 instructions: >-
   Open the app domain and register: the first account becomes the admin and is
   taken to the setup wizard to connect storage. With the bundled storage on,
@@ -60,8 +60,8 @@ benefits:
       third-party service.
   - title: No Per-Seat Fees
     description:
-      Free for up to 3 users. A Team license covers unlimited users on one
-      server for $120 a year.
+      Free for up to 3 users. A Team license covers up to 25 users on one server
+      for $119 a year, with no per-seat fees.
   - title: Familiar Drive Experience
     description:
       Folders, Starred, Trash, search and previews that work the way people
