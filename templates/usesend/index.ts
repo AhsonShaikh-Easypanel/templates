@@ -36,24 +36,20 @@ export function generate(input: Input): Output {
       serviceName: `${input.appServiceName}-storage`,
       source: {
         type: "image",
-        image: "minio/minio:latest",
+        image: "chrislusf/seaweedfs:4.48",
       },
       env: [
-        `MINIO_ROOT_USER=unsend`,
-        `MINIO_ROOT_PASSWORD=${minioPassword}`,
+        `AWS_ACCESS_KEY_ID=unsend`,
+        `AWS_SECRET_ACCESS_KEY=${minioPassword}`,
       ].join("\n"),
       deploy: {
         command:
-          'sh -c \'mkdir -p /data/unsend && minio server /data --console-address ":9001" --address ":9002"\'',
+          "/entrypoint.sh mini -dir=/data -s3.port=9000 -bucket=unsend -master.telemetry=false -admin.ui=false",
       },
       domains: [
         {
-          host: "storage-$(EASYPANEL_DOMAIN)",
-          port: 9002,
-        },
-        {
-          host: "console-$(EASYPANEL_DOMAIN)",
-          port: 9001,
+          host: "$(EASYPANEL_DOMAIN)",
+          port: 9000,
         },
       ],
       mounts: [
@@ -79,8 +75,9 @@ export function generate(input: Input): Output {
         `DATABASE_URL=postgresql://postgres:${postgresPassword}@$(PROJECT_NAME)_${input.appServiceName}-db:5432/$(PROJECT_NAME)`,
         `NEXTAUTH_URL=https://$(PRIMARY_DOMAIN)`,
         `NEXTAUTH_SECRET=${nextAuthSecret}`,
-        `AWS_ACCESS_KEY=${input.awsAccessKey}`,
-        `AWS_SECRET_KEY=${input.awsSecretKey}`,
+        `AWS_ACCESS_KEY=unsend`,
+        `AWS_SECRET_KEY=${minioPassword}`,
+        `AWS_ENDPOINT_URL=http://$(PROJECT_NAME)_${input.appServiceName}-storage:9000`,
         `AWS_DEFAULT_REGION=us-east-1`,
         `GITHUB_ID=${input.githubId}`,
         `GITHUB_SECRET=${input.githubSecret}`,
