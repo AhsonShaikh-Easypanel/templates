@@ -13,7 +13,7 @@ export function generate(input: Input): Output {
       serviceName: input.appServiceName,
       source: {
         type: "image",
-        image: "biolds/sosse:1.14.2",
+        image: input.appServiceImage,
       },
       domains: [
         {
@@ -41,9 +41,7 @@ export function generate(input: Input): Output {
     type: "postgres",
     data: {
       serviceName: dbServiceName,
-      databaseName: "$(PROJECT_NAME)",
       password: databasePassword,
-      image: "postgres:17",
     },
   });
 

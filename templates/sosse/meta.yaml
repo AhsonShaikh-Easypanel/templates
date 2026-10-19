@@ -21,11 +21,16 @@ schema:
   type: object
   required:
     - appServiceName
+    - appServiceImage
   properties:
     appServiceName:
       type: string
       title: App Service Name
       default: sosse
+    appServiceImage:
+      type: string
+      title: App Service Image
+      default: biolds/sosse:1.14.2
 benefits:
   - title: Self-hosted search
     description:
