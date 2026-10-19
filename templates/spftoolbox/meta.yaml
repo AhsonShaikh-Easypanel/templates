@@ -1,0 +1,48 @@
+name: SPFToolbox
+description:
+  SPFToolbox is a lightweight DNS record lookup tool for checking SPF, MX, TXT,
+  Whois, and other DNS entries for any domain directly from a browser.
+instructions: |
+  After deploy, open the app and enter a domain name to run SPF, MX, TXT, or
+  Whois lookups. No configuration or account is required.
+changeLog:
+  - date: 2026-10-19
+    description: First Release
+links:
+  - label: GitHub
+    url: https://github.com/charlesabarnes/SPFtoolbox
+  - label: Documentation
+    url: https://github.com/charlesabarnes/SPFtoolbox#readme
+contributors:
+  - name: Ahson Shaikh
+    url: https://github.com/Ahson-Shaikh
+schema:
+  type: object
+  required:
+    - appServiceName
+  properties:
+    appServiceName:
+      type: string
+      title: App Service Name
+      default: spftoolbox
+benefits:
+  - title: No setup required
+    description:
+      Deploy and go — no database, accounts, or configuration needed to start
+      running lookups.
+  - title: Self-hosted DNS tooling
+    description:
+      Run SPF, MX, TXT, and Whois lookups from your own infrastructure instead
+      of a third-party site.
+features:
+  - title: SPF/TXT lookup
+    description: Inspect SPF and other TXT records for a domain.
+  - title: MX and IP lookup
+    description: Check mail exchanger records and resolve domain IPs.
+  - title: Whois lookup
+    description: Pull Whois registration data for a domain.
+tags:
+  - DNS
+  - Networking
+  - Developer Tools
+  - Self-Hosted
