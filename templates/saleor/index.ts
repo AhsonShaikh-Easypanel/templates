@@ -20,7 +20,7 @@ export function generate(input: Input): Output {
   const dashboardServiceName = `${input.appServiceName}-dashboard`;
   const migrateServiceName = `${input.appServiceName}-migrate`;
 
-  const databaseUrl = `postgres://saleor:${dbPassword}@$(PROJECT_NAME)_${dbServiceName}:5432/$(PROJECT_NAME)`;
+  const databaseUrl = `postgres://postgres:${dbPassword}@$(PROJECT_NAME)_${dbServiceName}:5432/$(PROJECT_NAME)`;
   const cacheUrl = `redis://default:${cachePassword}@$(PROJECT_NAME)-${cacheServiceName}:6379/0`;
   const celeryBrokerUrl = `redis://default:${cachePassword}@$(PROJECT_NAME)-${cacheServiceName}:6379/1`;
 
@@ -42,7 +42,7 @@ export function generate(input: Input): Output {
       serviceName: migrateServiceName,
       source: {
         type: "image",
-        image: "ghcr.io/saleor/saleor:3.23",
+        image: input.apiServiceImage,
       },
       deploy: {
         command: "python3 manage.py migrate",
@@ -57,7 +57,7 @@ export function generate(input: Input): Output {
       serviceName: apiServiceName,
       source: {
         type: "image",
-        image: "ghcr.io/saleor/saleor:3.23",
+        image: input.apiServiceImage,
       },
       env: sharedEnv,
       domains: [
@@ -82,7 +82,7 @@ export function generate(input: Input): Output {
       serviceName: workerServiceName,
       source: {
         type: "image",
-        image: "ghcr.io/saleor/saleor:3.23",
+        image: input.apiServiceImage,
       },
       deploy: {
         command:
@@ -105,7 +105,7 @@ export function generate(input: Input): Output {
       serviceName: dashboardServiceName,
       source: {
         type: "image",
-        image: "ghcr.io/saleor/saleor-dashboard:3.23",
+        image: input.dashboardServiceImage,
       },
       env: [`API_URL=https://${input.apiDomain}/graphql/`].join("\n"),
       domains: [
@@ -121,10 +121,8 @@ export function generate(input: Input): Output {
     type: "postgres",
     data: {
       serviceName: dbServiceName,
-      databaseName: "$(PROJECT_NAME)",
-      user: "saleor",
       password: dbPassword,
-      image: "postgres:15-alpine",
+      image: input.dbServiceImage,
     },
   });
 
@@ -133,7 +131,7 @@ export function generate(input: Input): Output {
     data: {
       serviceName: cacheServiceName,
       password: cachePassword,
-      image: "valkey/valkey:8.1-alpine",
+      image: input.cacheServiceImage,
     },
   });
 

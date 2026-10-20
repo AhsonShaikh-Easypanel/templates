@@ -31,6 +31,10 @@ schema:
     - appServiceName
     - apiDomain
     - dashboardDomain
+    - apiServiceImage
+    - dashboardServiceImage
+    - dbServiceImage
+    - cacheServiceImage
   properties:
     appServiceName:
       type: string
@@ -45,6 +49,22 @@ schema:
       title: Dashboard Domain
       description:
         The domain the admin Dashboard will be reachable at (no https://)
+    apiServiceImage:
+      type: string
+      title: API/Worker Service Image
+      default: ghcr.io/saleor/saleor:3.23
+    dashboardServiceImage:
+      type: string
+      title: Dashboard Service Image
+      default: ghcr.io/saleor/saleor-dashboard:3.23
+    dbServiceImage:
+      type: string
+      title: Database Service Image
+      default: postgres:15-alpine
+    cacheServiceImage:
+      type: string
+      title: Cache Service Image
+      default: valkey/valkey:8.1-alpine
 benefits:
   - title: Headless and API-first
     description:
