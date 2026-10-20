@@ -43,9 +43,9 @@ export function generate(input: Input): Output {
     `PUBLIC_DEPLOYMENT=False`,
     `LDAP_ENABLED=False`,
     `OLD_JOBS_RETENTION_DAYS=14`,
-    `INTELOWL_WEB_CLIENT_DOMAIN=${input.appDomain}`,
-    `DEFAULT_FROM_EMAIL=noreply@${input.appDomain}`,
-    `DEFAULT_EMAIL=noreply@${input.appDomain}`,
+    `INTELOWL_WEB_CLIENT_DOMAIN=$(EASYPANEL_DOMAIN)`,
+    `DEFAULT_FROM_EMAIL=noreply@$(EASYPANEL_DOMAIN)`,
+    `DEFAULT_EMAIL=noreply@$(EASYPANEL_DOMAIN)`,
     `BROKER_URL=redis://default:${redisPassword}@${cacheHost}:6379/1`,
     `WEBSOCKETS_URL=redis://default:${redisPassword}@${cacheHost}:6379/0`,
   ].join("\n");
@@ -334,7 +334,7 @@ location /404.json {
       },
       domains: [
         {
-          host: input.appDomain,
+          host: "$(EASYPANEL_DOMAIN)",
           port: 80,
         },
       ],

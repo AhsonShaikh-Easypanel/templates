@@ -29,7 +29,6 @@ schema:
   type: object
   required:
     - appServiceName
-    - appDomain
     - appServiceImage
     - nginxServiceImage
     - dbServiceImage
@@ -39,11 +38,6 @@ schema:
       type: string
       title: App Service Name
       default: intelowl
-    appDomain:
-      type: string
-      title: App Domain
-      description:
-        The domain the IntelOwl dashboard and API will be reachable at
     appServiceImage:
       type: string
       title: App Service Image
