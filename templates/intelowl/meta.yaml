@@ -10,8 +10,14 @@ instructions: |
   Wait for it to finish (its container exits when done) before using the app;
   if the Daphne, Celery Beat, or Celery Worker services fail to start because
   the schema isn't ready yet, redeploy them once after migrate completes.
-  Create your first user with `python manage.py createsuperuser` from the
-  uwsgi service's Terminal tab in Easypanel.
+
+  To log in: open the uwsgi service's Terminal tab in Easypanel and run
+  `python manage.py createsuperuser`, following the prompts for username,
+  email, and password. Then open the app's domain in your browser, click
+  Login, and sign in with those credentials. The public "Register" button on
+  the homepage will not work out of the box since no SMTP server is
+  configured (required to send the email confirmation), so creating the
+  first account via the Terminal is required.
 changeLog:
   - date: "2026-10-21"
     description: First Release
