@@ -10,6 +10,8 @@ instructions: >-
   `npx web-push generate-vapid-keys` and paste them in if you want
   desktop/mobile push support.
 changeLog:
+  - date: 2026-10-21
+    description: pin images to 4.0.3
   - date: 2026-09-02
     description: first release
 links:
@@ -34,11 +36,11 @@ schema:
     appServiceImage:
       type: string
       title: Frontend Service Image
-      default: ghcr.io/maathimself/mailflow-frontend:latest
+      default: ghcr.io/maathimself/mailflow-frontend:4.0.3
     backendServiceImage:
       type: string
       title: Backend Service Image
-      default: ghcr.io/maathimself/mailflow-backend:latest
+      default: ghcr.io/maathimself/mailflow-backend:4.0.3
     vapidPublicKey:
       type: string
       title: VAPID Public Key
