@@ -11,8 +11,15 @@ export function generate(input: Input): Output {
 
   const postgresPassword = randomPassword();
   const redisPassword = randomPassword();
-  const minioPassword = randomPassword();
+  const storageAccessKey = input.appServiceName;
+  const storageSecretKey = randomPassword();
   const nextAuthSecret = randomString(32);
+
+  const storageServiceName = `${input.appServiceName}-storage`;
+  const storageInitServiceName = `${input.appServiceName}-storage-init`;
+  const storagePublicUrl = `https://$(PROJECT_NAME)-${storageServiceName}.$(EASYPANEL_HOST)`;
+  const appPublicUrl = `https://$(PROJECT_NAME)-${input.appServiceName}.$(EASYPANEL_HOST)`;
+  const bucketName = input.appServiceName;
 
   services.push({
     type: "postgres",
@@ -33,19 +40,18 @@ export function generate(input: Input): Output {
   services.push({
     type: "app",
     data: {
-      serviceName: `${input.appServiceName}-storage`,
+      serviceName: storageServiceName,
       source: {
         type: "image",
-        image: "chrislusf/seaweedfs:4.48",
+        image: "rustfs/rustfs:1.0.4",
       },
       env: [
-        `AWS_ACCESS_KEY_ID=unsend`,
-        `AWS_SECRET_ACCESS_KEY=${minioPassword}`,
+        `RUSTFS_ACCESS_KEY=${storageAccessKey}`,
+        `RUSTFS_SECRET_KEY=${storageSecretKey}`,
+        `RUSTFS_ADDRESS=0.0.0.0:9000`,
+        `RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001`,
+        `RUSTFS_CONSOLE_ENABLE=true`,
       ].join("\n"),
-      deploy: {
-        command:
-          "/entrypoint.sh mini -dir=/data -s3.port=9000 -bucket=unsend -master.telemetry=false -admin.ui=false",
-      },
       domains: [
         {
           host: "$(EASYPANEL_DOMAIN)",
@@ -57,6 +63,74 @@ export function generate(input: Input): Output {
           type: "volume",
           name: "storage",
           mountPath: "/data",
+        },
+      ],
+    },
+  });
+
+  // RustFS has no built-in way to create a bucket or make it publicly
+  // readable on boot, unlike the MinIO image it replaces, so a one-shot
+  // AWS CLI job bootstraps the bucket, its CORS rules, and a public-read
+  // policy against the running RustFS server. It's safe to rerun.
+  //
+  // $(...) substitutions (like $(EASYPANEL_HOST)) are only resolved in
+  // env/domains, not inside file mount content, so the URLs are built in
+  // env and read back as plain shell variables here instead of being
+  // baked into the script text directly.
+  //
+  // The AWS CLI's own endpoint-url parser also rejects hostnames
+  // containing an underscore (fails with "Invalid endpoint") even though
+  // curl and other S3 SDKs accept them fine, so this talks to storage over
+  // its public, hyphenated domain rather than the internal
+  // "$(PROJECT_NAME)_<service>" hostname used elsewhere in this template.
+  const bootstrapScript = `#!/bin/sh
+set -eu
+until curl -fsS "$STORAGE_URL/health" >/dev/null 2>&1; do
+  echo "Waiting for storage..."
+  sleep 1
+done
+s3="aws --endpoint-url $STORAGE_URL s3api"
+$s3 head-bucket --bucket "$BUCKET_NAME" >/dev/null 2>&1 || $s3 create-bucket --bucket "$BUCKET_NAME"
+$s3 put-bucket-cors --bucket "$BUCKET_NAME" --cors-configuration "{\\"CORSRules\\":[{\\"AllowedOrigins\\":[\\"$APP_URL\\"],\\"AllowedMethods\\":[\\"GET\\",\\"HEAD\\",\\"PUT\\"],\\"AllowedHeaders\\":[\\"*\\"],\\"ExposeHeaders\\":[\\"ETag\\"],\\"MaxAgeSeconds\\":3600}]}"
+$s3 put-bucket-policy --bucket "$BUCKET_NAME" --policy "{\\"Version\\":\\"2012-10-17\\",\\"Statement\\":[{\\"Effect\\":\\"Allow\\",\\"Principal\\":\\"*\\",\\"Action\\":[\\"s3:GetObject\\"],\\"Resource\\":[\\"arn:aws:s3:::$BUCKET_NAME/*\\"]}]}"
+sleep infinity
+`;
+
+  services.push({
+    type: "app",
+    data: {
+      serviceName: storageInitServiceName,
+      source: {
+        type: "image",
+        image: "amazon/aws-cli:2.34.30",
+      },
+      deploy: {
+        command: "sh /bootstrap.sh",
+      },
+      // $(EASYPANEL_HOST) only resolves for a service that has at least
+      // one domain of its own, so this otherwise-unused domain exists
+      // purely to let STORAGE_URL/APP_URL below resolve correctly; nothing
+      // ever listens on this port.
+      domains: [
+        {
+          host: "$(EASYPANEL_DOMAIN)",
+          port: 9999,
+        },
+      ],
+      env: [
+        `AWS_ACCESS_KEY_ID=${storageAccessKey}`,
+        `AWS_SECRET_ACCESS_KEY=${storageSecretKey}`,
+        `AWS_DEFAULT_REGION=us-east-1`,
+        `AWS_EC2_METADATA_DISABLED=true`,
+        `STORAGE_URL=${storagePublicUrl}`,
+        `APP_URL=${appPublicUrl}`,
+        `BUCKET_NAME=${bucketName}`,
+      ].join("\n"),
+      mounts: [
+        {
+          type: "file",
+          content: bootstrapScript,
+          mountPath: "/bootstrap.sh",
         },
       ],
     },
@@ -75,12 +149,13 @@ export function generate(input: Input): Output {
         `DATABASE_URL=postgresql://postgres:${postgresPassword}@$(PROJECT_NAME)_${input.appServiceName}-db:5432/$(PROJECT_NAME)`,
         `NEXTAUTH_URL=https://$(PRIMARY_DOMAIN)`,
         `NEXTAUTH_SECRET=${nextAuthSecret}`,
-        `AWS_ACCESS_KEY=unsend`,
-        `AWS_SECRET_KEY=${minioPassword}`,
-        `AWS_ENDPOINT_URL=http://$(PROJECT_NAME)_${input.appServiceName}-storage:9000`,
-        `AWS_DEFAULT_REGION=us-east-1`,
-        `GITHUB_ID=${input.githubId}`,
-        `GITHUB_SECRET=${input.githubSecret}`,
+        `S3_COMPATIBLE_ACCESS_KEY=${storageAccessKey}`,
+        `S3_COMPATIBLE_SECRET_KEY=${storageSecretKey}`,
+        `S3_COMPATIBLE_API_URL=${storagePublicUrl}`,
+        `S3_COMPATIBLE_PUBLIC_URL=${storagePublicUrl}`,
+        `S3_COMPATIBLE_BUCKET=${bucketName}`,
+        `GITHUB_ID=${input.githubId || ""}`,
+        `GITHUB_SECRET=${input.githubSecret || ""}`,
         `REDIS_URL=redis://:${redisPassword}@$(PROJECT_NAME)_${input.appServiceName}-redis:6379`,
         `NEXT_PUBLIC_IS_CLOUD=false`,
         `API_RATE_LIMIT=${input.apiRateLimit || "60"}`,
