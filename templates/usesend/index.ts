@@ -68,21 +68,6 @@ export function generate(input: Input): Output {
     },
   });
 
-  // RustFS has no built-in way to create a bucket or make it publicly
-  // readable on boot, unlike the MinIO image it replaces, so a one-shot
-  // AWS CLI job bootstraps the bucket, its CORS rules, and a public-read
-  // policy against the running RustFS server. It's safe to rerun.
-  //
-  // $(...) substitutions (like $(EASYPANEL_HOST)) are only resolved in
-  // env/domains, not inside file mount content, so the URLs are built in
-  // env and read back as plain shell variables here instead of being
-  // baked into the script text directly.
-  //
-  // The AWS CLI's own endpoint-url parser also rejects hostnames
-  // containing an underscore (fails with "Invalid endpoint") even though
-  // curl and other S3 SDKs accept them fine, so this talks to storage over
-  // its public, hyphenated domain rather than the internal
-  // "$(PROJECT_NAME)_<service>" hostname used elsewhere in this template.
   const bootstrapScript = `#!/bin/sh
 set -eu
 until curl -fsS "$STORAGE_URL/health" >/dev/null 2>&1; do
@@ -107,10 +92,6 @@ sleep infinity
       deploy: {
         command: "sh /bootstrap.sh",
       },
-      // $(EASYPANEL_HOST) only resolves for a service that has at least
-      // one domain of its own, so this otherwise-unused domain exists
-      // purely to let STORAGE_URL/APP_URL below resolve correctly; nothing
-      // ever listens on this port.
       domains: [
         {
           host: "$(EASYPANEL_DOMAIN)",
